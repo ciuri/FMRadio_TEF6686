@@ -104,8 +104,8 @@ static void UpdateScreen(void *parameter)
       display.drawLine(freqToX(tef.Currentfreq), vOffset + display.height() / 2 - 20, freqToX(tef.Currentfreq), vOffset + display.height() / 2 + 20, GxEPD_BLACK);
 
       int lastHeight = 0;
-      int lastX = freqToX(8800);
-      freq = 8800;
+      int lastX = freqToX(8000);
+      freq = 8000;
       while (freq < 10800)
       {
         float qF = (float)qualityMap[freq] / (float)1200;
