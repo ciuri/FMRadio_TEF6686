@@ -85,7 +85,7 @@ static void UpdateScreen(void *parameter)
       display.setTextSize(0);
       display.print(rtText);
 
-      int vOffset = 20;
+      int vOffset = 10;
 
       display.drawLine(0, vOffset + display.height() / 2, display.width(), vOffset + display.height() / 2, GxEPD_BLACK);
 
@@ -129,7 +129,7 @@ void setup()
   Serial.begin(115200);
   tef.Init();
   tef.Audio_Set_Mute(0);
-  tef.Tune_To(tef.MODULE_FM, 6500);
+  tef.Tune_To(tef.MODULE_FM, 8500);
 
   display.init(115200, true, 50, false);
   display.setPartialWindow(0, 0, display.width(), display.height());
