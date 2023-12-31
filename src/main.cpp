@@ -44,7 +44,7 @@ void ScanAll(int step)
   {
     qualityOK = 0;
     tef.Tune_To(tef.MODULE_FM, tef.Currentfreq + step);
-    delay(40);
+    delay(50);
     uint16_t q = tef.Get_Quality_Status();
     qualityMap[tef.Currentfreq] = q;
     Serial.printf("Freq: %i, Quality: %i \n", tef.Currentfreq, q);
@@ -140,7 +140,8 @@ void setup()
   display.clearScreen();
   xTaskCreate(UpdateScreen, "UpdateScreen", 20000, NULL, 5, NULL);
   ScanAll(10);
-  tef.Tune_To(tef.MODULE_FM, 8800);
+  tef.Tune_To(tef.MODULE_FM, 8500);
+  Seek(10);
 }
 
 void loop()
