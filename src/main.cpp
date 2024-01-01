@@ -2,7 +2,6 @@
 // enable or disable GxEPD2_GFX base class
 #define ENABLE_GxEPD2_GFX 0
 
-
 #include <GxEPD2_BW.h>
 #include <GxEPD2_3C.h>
 #include <Fonts/FreeSans12pt7b.h>
@@ -18,6 +17,7 @@ unsigned long _lastRDSTime;
 char displayText[256];
 char text[256];
 char rtText[256];
+uint16_t qualityThreshold = 400;
 
 // int qualityMap[430];
 std::map<uint16_t, uint16_t> qualityMap;
@@ -27,17 +27,16 @@ GxEPD2_BW<GxEPD2_290_BS, GxEPD2_290_BS::HEIGHT> display(GxEPD2_290_BS(/*CS=5*/ 5
 void Seek(int step)
 {
   uint16_t f = tef.Currentfreq;
-   while(f<10800)
-   {
-     f+=step;
-      if(qualityMap[f]>400)
-      {
-        tef.Tune_To(tef.MODULE_FM,f);
-        qualityOK=1;
-        return;
-      }
-     
-   }
+  while (f < 10800)
+  {
+    f += step;
+    if (qualityMap[f] > qualityThreshold)
+    {
+      tef.Tune_To(tef.MODULE_FM, f);
+      qualityOK = 1;
+      return;
+    }
+  }
 }
 
 void ScanAll(int step)
@@ -62,27 +61,35 @@ int16_t freqToX(uint16_t freq)
   return freqFact * length + start;
 }
 
+void DrawHorizontalDottedLine(uint16_t Y)
+{
+  for (int x = 0; x < display.width(); x++)
+  {
+    if (x % 4 == 0)
+      display.drawPixel(x, Y, TEXT_COLOR);
+  }
+}
+
 static void UpdateScreen(void *parameter)
-{   
+{
   while (true)
   {
     display.firstPage();
     do
     {
-      display.setTextSize(2);           
-      display.fillScreen(BACK_COLOR); 
+      display.setTextSize(2);
+      display.fillScreen(BACK_COLOR);
       display.setTextColor(TEXT_COLOR);
-     // display.setFont(&FreeSans12pt7b);
+      // display.setFont(&FreeSans12pt7b);
       display.setCursor(0, 5);
       display.print(displayText);
       display.setFont(NULL);
       display.setCursor(0, 30);
       display.setTextSize(0);
       display.print(rtText);
-     
-      //display.drawLine(0,25,display.width(),25,TEXT_COLOR);
-      //display.drawLine(display.width()/2-20,25,display.width()/2-20,0,TEXT_COLOR);
-      
+
+      // display.drawLine(0,25,display.width(),25,TEXT_COLOR);
+      // display.drawLine(display.width()/2-20,25,display.width()/2-20,0,TEXT_COLOR);
 
       int vOffset = 10;
       display.drawLine(0, vOffset + display.height() / 2, display.width(), vOffset + display.height() / 2, TEXT_COLOR);
@@ -107,7 +114,7 @@ static void UpdateScreen(void *parameter)
       while (freq < 11000)
       {
         float qF = (float)qualityMap[freq] / (float)1200;
-        int barHeight = qF * 70;
+        int barHeight = qF * 100 -vOffset;
 
         //  display.drawLine(freqToX(f), display.height()  - barHeight, freqToX(f),  display.height() , TEXT_COLOR);
         display.drawLine(lastX, display.height() - lastHeight, freqToX(freq), display.height() - barHeight, TEXT_COLOR);
@@ -115,10 +122,14 @@ static void UpdateScreen(void *parameter)
         lastHeight = barHeight;
         freq += 10;
       }
+      float qF = (float)qualityThreshold / (float)1200;
+      int thresholdLineY = qF * 100 - vOffset;
+      // display.drawLine(0, display.height() - thresholdLineY, display.width(), display.height() - thresholdLineY, TEXT_COLOR);
+      DrawHorizontalDottedLine(display.height() - thresholdLineY);
 
     } while (display.nextPage());
 
-    //delay(500);
+    // delay(500);
   }
 }
 
@@ -170,6 +181,14 @@ void loop()
     else if (readed == 52)
     {
       tef.Tune_To(tef.MODULE_FM, tef.Currentfreq + 10);
+    }
+    else if (readed == 53)
+    {
+      qualityThreshold -= 10;
+    }
+    else if (readed == 54)
+    {
+      qualityThreshold += 10;
     }
   }
   delay(10);
