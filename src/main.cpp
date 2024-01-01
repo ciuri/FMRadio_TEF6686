@@ -51,7 +51,7 @@ void ScanAll(int step)
     uint16_t q = tef.Get_Quality_Status();
     qualityMap[tef.Currentfreq] = q;
     Serial.printf("Freq: %i, Quality: %i \n", tef.Currentfreq, q);
-  } while (tef.Currentfreq < 10800);
+  } while (tef.Currentfreq < 11000);
 }
 
 int16_t freqToX(uint16_t freq)
@@ -104,7 +104,7 @@ static void UpdateScreen(void *parameter)
       int lastHeight = 0;
       int lastX = freqToX(8000);
       freq = 8000;
-      while (freq < 10800)
+      while (freq < 11000)
       {
         float qF = (float)qualityMap[freq] / (float)1200;
         int barHeight = qF * 70;
@@ -152,7 +152,7 @@ void loop()
 
     Serial.println(text);
   }
-  sprintf(displayText, "FM %i.%i Mhz   %s", tef.Currentfreq / 100, tef.Currentfreq % 100, tef.psText);
+  sprintf(displayText, "FM %i.%i Mhz  %s", tef.Currentfreq / 100, tef.Currentfreq % 100, tef.psText);
   sprintf(rtText, "%s", tef.rtText);
   if (Serial.available())
   {
