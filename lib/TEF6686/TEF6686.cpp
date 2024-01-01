@@ -93,6 +93,7 @@ void TEF6686::Writei2c(uint8_t data)
 
 void TEF6686::Tune_To(uint8_t module, uint16_t freq)
 {
+
     uint16_t params[2] = {1, freq};
     SetCommand(module, 0x1, params, 2);
     Currentfreq = freq;
@@ -146,7 +147,7 @@ void TEF6686::HandleGroup0(uint16_t *rdsData)
     uint8_t err2 = (uint8_t)((rdsData[5] >> 12) & 3);
     uint8_t err4 = (uint8_t)((rdsData[5] >> 8) & 3);
 
-    if (err2==0 && err4==0)
+    if (err2 == 0 && err4 == 0)
     {
         uint8_t offset = rdsData[2] & (uint16_t)3;
         psText[2 * offset] = (uint8_t)(rdsData[4] >> 8);
@@ -170,12 +171,12 @@ void TEF6686::HandleGroup2(uint16_t *rdsData)
 
     if (versionA)
     {
-        if (err3<2)
+        if (err3 < 2)
         {
             rtText[4 * offset] = (uint8_t)(rdsData[3] >> 8);
             rtText[4 * offset + 1] = (uint8_t)(rdsData[3]);
         }
-        if(err4<2)
+        if (err4 < 2)
         {
             rtText[4 * offset + 2] = (uint8_t)(rdsData[4] >> 8);
             rtText[4 * offset + 3] = (uint8_t)(rdsData[4]);
@@ -183,7 +184,7 @@ void TEF6686::HandleGroup2(uint16_t *rdsData)
     }
     else
     {
-        if (err4 ==0)
+        if (err4 == 0)
         {
             rtText[2 * offset] = (uint8_t)(rdsData[4] >> 8);
             rtText[2 * offset + 1] = (uint8_t)(rdsData[4]);

@@ -5,9 +5,12 @@
 
 #include <GxEPD2_BW.h>
 #include <GxEPD2_3C.h>
-#include <Fonts/Picopixel.h>
+#include <Fonts/FreeSans12pt7b.h>
 #include <uICAL.h>
 #include <TEF6686.h>
+
+#define BACK_COLOR GxEPD_WHITE
+#define TEXT_COLOR GxEPD_BLACK
 
 TEF6686 tef;
 uint8_t qualityOK;
@@ -51,14 +54,6 @@ void ScanAll(int step)
   } while (tef.Currentfreq < 10800);
 }
 
-void DrawBox(int16_t x, int16_t y, int16_t w, int16_t h)
-{
-  display.drawLine(x, y, x + w, y, GxEPD_BLACK);
-  display.drawLine(x, y, x, y + h, GxEPD_BLACK);
-  display.drawLine(x, y + h, x + w, y + h, GxEPD_BLACK);
-  display.drawLine(x + w, y, x + w, y + h, GxEPD_BLACK);
-}
-
 int16_t freqToX(uint16_t freq)
 {
   int length = (10 * (display.width() / 11) + 15) - (0 * (display.width() / 11) + 15);
@@ -74,34 +69,37 @@ static void UpdateScreen(void *parameter)
     display.firstPage();
     do
     {
-      display.setCursor(10, 90);
-      // display.fillScreen(GxEPD_WHITE);
-      display.setTextColor(GxEPD_BLACK);
-
-      display.setCursor(0, 10);
-      display.setTextSize(2);
+      display.setTextSize(2);           
+      display.fillScreen(BACK_COLOR); 
+      display.setTextColor(TEXT_COLOR);
+     // display.setFont(&FreeSans12pt7b);
+      display.setCursor(0, 5);
       display.print(displayText);
+      display.setFont(NULL);
       display.setCursor(0, 30);
       display.setTextSize(0);
       display.print(rtText);
+     
+      //display.drawLine(0,25,display.width(),25,TEXT_COLOR);
+      //display.drawLine(display.width()/2-20,25,display.width()/2-20,0,TEXT_COLOR);
+      
 
       int vOffset = 10;
-
-      display.drawLine(0, vOffset + display.height() / 2, display.width(), vOffset + display.height() / 2, GxEPD_BLACK);
+      display.drawLine(0, vOffset + display.height() / 2, display.width(), vOffset + display.height() / 2, TEXT_COLOR);
 
       int freq = 88;
       for (int i = 0; i < 11; i++)
       {
         int offset = i % 2 == 0 ? -20 : 5;
 
-        display.drawLine(i * (display.width() / 11) + 15, vOffset + display.height() / 2 - 10, i * (display.width() / 11) + 15, vOffset + display.height() / 2, GxEPD_BLACK);
+        display.drawLine(i * (display.width() / 11) + 15, vOffset + display.height() / 2 - 10, i * (display.width() / 11) + 15, vOffset + display.height() / 2, TEXT_COLOR);
         display.setCursor(i * (display.width() / 11) + 10, vOffset + display.height() / 2 + offset);
         display.setTextSize(1);
         display.print(freq);
         freq += 2;
       }
-      //  display.drawLine(currentFreq + (display.width() / 11) + 15, vOffset + display.height() / 2 - 20, currentFreq + (display.width() / 11) + 15, vOffset + display.height() / 2 + 20, GxEPD_BLACK);
-      display.drawLine(freqToX(tef.Currentfreq), vOffset + display.height() / 2 - 20, freqToX(tef.Currentfreq), vOffset + display.height() / 2 + 20, GxEPD_BLACK);
+      //  display.drawLine(currentFreq + (display.width() / 11) + 15, vOffset + display.height() / 2 - 20, currentFreq + (display.width() / 11) + 15, vOffset + display.height() / 2 + 20, TEXT_COLOR);
+      display.drawLine(freqToX(tef.Currentfreq), vOffset + display.height() / 2 - 20, freqToX(tef.Currentfreq), vOffset + display.height() / 2 + 20, TEXT_COLOR);
 
       int lastHeight = 0;
       int lastX = freqToX(8000);
@@ -111,8 +109,8 @@ static void UpdateScreen(void *parameter)
         float qF = (float)qualityMap[freq] / (float)1200;
         int barHeight = qF * 70;
 
-        //  display.drawLine(freqToX(f), display.height()  - barHeight, freqToX(f),  display.height() , GxEPD_BLACK);
-        display.drawLine(lastX + 1, display.height() - lastHeight, freqToX(freq) + 1, display.height() - barHeight, GxEPD_BLACK);
+        //  display.drawLine(freqToX(f), display.height()  - barHeight, freqToX(f),  display.height() , TEXT_COLOR);
+        display.drawLine(lastX + 1, display.height() - lastHeight, freqToX(freq) + 1, display.height() - barHeight, TEXT_COLOR);
         lastX = freqToX(freq);
         lastHeight = barHeight;
         freq += 10;
@@ -134,13 +132,10 @@ void setup()
   display.init(115200, true, 50, false);
   display.setPartialWindow(0, 0, display.width(), display.height());
   display.setRotation(1);
-  // display.setFont(&Picopixel);
-  display.setTextColor(GxEPD_BLACK);
-  display.setTextSize(1);
   display.clearScreen();
   xTaskCreate(UpdateScreen, "UpdateScreen", 20000, NULL, 5, NULL);
   ScanAll(10);
-  tef.Tune_To(tef.MODULE_FM, 8500);
+  tef.Tune_To(tef.MODULE_FM, 8400);
   Seek(10);
 }
 
@@ -157,7 +152,7 @@ void loop()
 
     Serial.println(text);
   }
-  sprintf(displayText, "%i.%i Mhz    %s", tef.Currentfreq / 100, tef.Currentfreq % 100, tef.psText);
+  sprintf(displayText, "FM %i.%i Mhz   %s", tef.Currentfreq / 100, tef.Currentfreq % 100, tef.psText);
   sprintf(rtText, "%s", tef.rtText);
   if (Serial.available())
   {
