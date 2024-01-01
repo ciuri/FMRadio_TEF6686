@@ -120,7 +120,7 @@ static void UpdateScreen(void *parameter)
 
     } while (display.nextPage());
 
-    delay(500);
+    //delay(500);
   }
 }
 

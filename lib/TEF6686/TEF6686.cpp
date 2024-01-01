@@ -29,7 +29,7 @@ void TEF6686::DspWriteData(const uint8_t *data)
 void TEF6686::Init()
 {
     delay(40);
-    Wire.begin(21,22,100000);
+    Wire.begin(21, 22, 100000);
     uint16_t state[1];
     do
     {
@@ -39,7 +39,7 @@ void TEF6686::Init()
 
         else if (state[0] >= 2)
         {
-            Appl_Set_OperationMode(1);            
+            Appl_Set_OperationMode(1);
         }
         Serial.println(state[0]);
     } while (state[0] < 2);
@@ -120,11 +120,10 @@ uint16_t TEF6686::Get_Quality_Status()
     return result[1];
 }
 
-
 void TEF6686::Get_RDS_Status()
 {
     uint16_t uRds_Data[6] = {0};
-    GetCommand(MODULE_FM, 130, uRds_Data, 6);
+    GetCommand(MODULE_FM, 130, uRds_Data, 7);
 
     if (bitRead(uRds_Data[0], 15) == 1)
     {
@@ -144,9 +143,15 @@ void TEF6686::HandleGroup0(uint16_t *rdsData)
     ta = (uint8_t)((rdsData[2] >> 4) & 1) == 1;
     pty = (uint8_t)((rdsData[2] >> 5) & 0x1F);
 
-    uint8_t offset = rdsData[2] & (uint16_t)3;
-    psText[2 * offset] = (uint8_t)(rdsData[4] >> 8);
-    psText[2 * offset + 1] = (uint8_t)(rdsData[4]);
+    uint8_t err2 = (uint8_t)((rdsData[5] >> 12) & 3);
+    uint8_t err4 = (uint8_t)((rdsData[5] >> 8) & 3);
+
+    if (err2==0 && err4==0)
+    {
+        uint8_t offset = rdsData[2] & (uint16_t)3;
+        psText[2 * offset] = (uint8_t)(rdsData[4] >> 8);
+        psText[2 * offset + 1] = (uint8_t)(rdsData[4]);
+    }
 }
 
 void TEF6686::HandleGroup2(uint16_t *rdsData)
@@ -159,17 +164,30 @@ void TEF6686::HandleGroup2(uint16_t *rdsData)
     bool versionA = bitRead(rdsData[0], 12) == 0;
     uint8_t offset = rdsData[2] & (uint16_t)0xf;
 
+    uint8_t err2 = (uint8_t)((rdsData[5] >> 12) & 3);
+    uint8_t err3 = (uint8_t)((rdsData[5] >> 10) & 3);
+    uint8_t err4 = (uint8_t)((rdsData[5] >> 8) & 3);
+
     if (versionA)
     {
-        rtText[4 * offset] = (uint8_t)(rdsData[3] >> 8);
-        rtText[4 * offset + 1] = (uint8_t)(rdsData[3]);
-        rtText[4 * offset + 2] = (uint8_t)(rdsData[4] >> 8);
-        rtText[4 * offset + 3] = (uint8_t)(rdsData[4]);
+        if (err3<2)
+        {
+            rtText[4 * offset] = (uint8_t)(rdsData[3] >> 8);
+            rtText[4 * offset + 1] = (uint8_t)(rdsData[3]);
+        }
+        if(err4<2)
+        {
+            rtText[4 * offset + 2] = (uint8_t)(rdsData[4] >> 8);
+            rtText[4 * offset + 3] = (uint8_t)(rdsData[4]);
+        }
     }
     else
     {
-        rtText[2 * offset] = (uint8_t)(rdsData[4] >> 8);
-        rtText[2 * offset + 1] = (uint8_t)(rdsData[4]);
+        if (err4 ==0)
+        {
+            rtText[2 * offset] = (uint8_t)(rdsData[4] >> 8);
+            rtText[2 * offset + 1] = (uint8_t)(rdsData[4]);
+        }
     }
 }
 
