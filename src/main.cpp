@@ -110,7 +110,7 @@ static void UpdateScreen(void *parameter)
         int barHeight = qF * 70;
 
         //  display.drawLine(freqToX(f), display.height()  - barHeight, freqToX(f),  display.height() , TEXT_COLOR);
-        display.drawLine(lastX + 1, display.height() - lastHeight, freqToX(freq) + 1, display.height() - barHeight, TEXT_COLOR);
+        display.drawLine(lastX, display.height() - lastHeight, freqToX(freq), display.height() - barHeight, TEXT_COLOR);
         lastX = freqToX(freq);
         lastHeight = barHeight;
         freq += 10;
