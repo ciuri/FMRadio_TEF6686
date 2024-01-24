@@ -3,7 +3,7 @@
 
 #include <Arduino.h>
 #include <Wire.h>
-
+#include <TEF6686I2CComm.h>
 static const uint8_t DSP_INIT[] PROGMEM = {
     0x03, 0x1C, 0x00, 0x00, // Clear Required Initialization Control
     0x03, 0x1C, 0x00, 0x74, // Set Required Initialization Control
@@ -359,12 +359,10 @@ class TEF6686
 
 private:
    
-    void DspWriteData(const uint8_t *data);   
-    void SetCommand(uint8_t module, uint8_t cmd, uint16_t *params, uint8_t paramsCount);
-    void GetCommand(uint8_t module, uint8_t cmd, uint16_t *response, uint8_t responseLength);
+    void DspWriteData(const uint8_t *data);
     void HandleGroup0(uint16_t* rdsData);
     void HandleGroup2(uint16_t* rdsData);
-    void Writei2c(uint8_t data);
+    TEF6686I2CComm tefI2CComm;
     
 
 public:
