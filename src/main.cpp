@@ -5,9 +5,8 @@
 #include <GxEPD2_BW.h>
 #include <GxEPD2_3C.h>
 #include <Fonts/FreeSans12pt7b.h>
-#include <uICAL.h>
 #include <TEF6686.h>
-
+#include <map>
 #define BACK_COLOR GxEPD_WHITE
 #define TEXT_COLOR GxEPD_BLACK
 
