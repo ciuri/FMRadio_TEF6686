@@ -134,6 +134,9 @@ static void UpdateScreen(void *parameter)
 
 void setup()
 {
+  pinMode(12,INPUT_PULLUP);
+  pinMode(13,INPUT_PULLUP);
+
   Serial.begin(115200);
   tef.Init();
   tef.Audio_Set_Mute(0);
@@ -191,4 +194,15 @@ void loop()
     }
   }
   delay(10);
+
+  if(digitalRead(12)==0)
+  {
+    Seek(-10);
+    delay(300);
+  }
+  if(digitalRead(13)==0)
+  {
+    Seek(10);
+    delay(300);
+  }
 }
