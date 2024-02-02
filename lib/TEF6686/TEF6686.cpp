@@ -66,15 +66,14 @@ void TEF6686::Appl_Set_OperationMode(uint8_t mode)
     tefI2CComm.SetCommand(MODULE_AUDIO, 1, param, 1);
 }
 
-uint16_t TEF6686::Get_Quality_Status()
+void TEF6686::UpdateQualityStatus()
 {
     uint16_t result[7];
     tefI2CComm.GetCommand(MODULE_FM, 128, result, 7);
     quality = result[1];
-    return result[1];
 }
 
-void TEF6686::Get_RDS_Status()
+void TEF6686::UpdateRDSStatus()
 {
     uint16_t uRds_Data[6] = {0};
     tefI2CComm.GetCommand(MODULE_FM, 130, uRds_Data, 7);

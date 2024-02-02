@@ -381,9 +381,9 @@ public:
     void Tune_To(uint8_t module, uint16_t freq);
     void Audio_Set_Mute(uint8_t mute);
     void Appl_Set_OperationMode(uint8_t mode);
-    uint16_t Get_Quality_Status();
-    void Get_RDS_Status();
     void Get_Identification();
+    void UpdateRDSStatus();
+    void UpdateQualityStatus();
     uint16_t Currentfreq;
 };
 

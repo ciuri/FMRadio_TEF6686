@@ -1,7 +1,4 @@
-// base class GxEPD2_GFX can be used to pass references or pointers to the display instance as parameter, uses ~1.2k more code
-// enable or disable GxEPD2_GFX base class
 #define ENABLE_GxEPD2_GFX 0
-
 #include <GxEPD2_BW.h>
 #include <GxEPD2_3C.h>
 #include <Fonts/FreeSans12pt7b.h>
@@ -18,7 +15,6 @@ char text[256];
 char rtText[256];
 uint16_t qualityThreshold = 400;
 
-// int qualityMap[430];
 std::map<uint16_t, uint16_t> qualityMap;
 
 GxEPD2_BW<GxEPD2_290_BS, GxEPD2_290_BS::HEIGHT> display(GxEPD2_290_BS(/*CS=5*/ 5, /*DC=*/19, /*RST=*/2, /*BUSY=*/15)); // DEPG0290BS 128x296, SSD1680
@@ -46,9 +42,9 @@ void ScanAll(int step)
     qualityOK = 0;
     tef.Tune_To(tef.MODULE_FM, tef.Currentfreq + step);
     delay(50);
-    uint16_t q = tef.Get_Quality_Status();
-    qualityMap[tef.Currentfreq] = q;
-    Serial.printf("Freq: %i, Quality: %i \n", tef.Currentfreq, q);
+    tef.UpdateQualityStatus();
+    qualityMap[tef.Currentfreq] = tef.quality;
+    Serial.printf("Freq: %i, Quality: %i \n", tef.Currentfreq, tef.quality);
   } while (tef.Currentfreq < 11000);
 }
 
@@ -78,8 +74,7 @@ static void UpdateScreen(void *parameter)
     {
       display.setTextSize(2);
       display.fillScreen(BACK_COLOR);
-      display.setTextColor(TEXT_COLOR);
-      // display.setFont(&FreeSans12pt7b);
+      display.setTextColor(TEXT_COLOR); 
       display.setCursor(0, 5);
       display.print(displayText);
       display.setFont(NULL);
@@ -87,8 +82,6 @@ static void UpdateScreen(void *parameter)
       display.setTextSize(0);
       display.print(rtText);
 
-      // display.drawLine(0,25,display.width(),25,TEXT_COLOR);
-      // display.drawLine(display.width()/2-20,25,display.width()/2-20,0,TEXT_COLOR);
 
       int vOffset = 10;
       display.drawLine(0, vOffset + display.height() / 2, display.width(), vOffset + display.height() / 2, TEXT_COLOR);
@@ -104,7 +97,6 @@ static void UpdateScreen(void *parameter)
         display.print(freq);
         freq += 2;
       }
-      //  display.drawLine(currentFreq + (display.width() / 11) + 15, vOffset + display.height() / 2 - 20, currentFreq + (display.width() / 11) + 15, vOffset + display.height() / 2 + 20, TEXT_COLOR);
       display.drawLine(freqToX(tef.Currentfreq), vOffset + display.height() / 2 - 20, freqToX(tef.Currentfreq), vOffset + display.height() / 2 + 20, TEXT_COLOR);
 
       int lastHeight = 0;
@@ -114,8 +106,6 @@ static void UpdateScreen(void *parameter)
       {
         float qF = (float)qualityMap[freq] / (float)1200;
         int barHeight = qF * 100 -vOffset;
-
-        //  display.drawLine(freqToX(f), display.height()  - barHeight, freqToX(f),  display.height() , TEXT_COLOR);
         display.drawLine(lastX, display.height() - lastHeight, freqToX(freq), display.height() - barHeight, TEXT_COLOR);
         lastX = freqToX(freq);
         lastHeight = barHeight;
@@ -123,12 +113,9 @@ static void UpdateScreen(void *parameter)
       }
       float qF = (float)qualityThreshold / (float)1200;
       int thresholdLineY = qF * 100 - vOffset;
-      // display.drawLine(0, display.height() - thresholdLineY, display.width(), display.height() - thresholdLineY, TEXT_COLOR);
       DrawHorizontalDottedLine(display.height() - thresholdLineY);
 
     } while (display.nextPage());
-
-    // delay(500);
   }
 }
 
@@ -159,8 +146,8 @@ void loop()
   if (qualityOK && (currentTime - 87 > _lastRDSTime))
   {
     _lastRDSTime = currentTime;
-    tef.Get_RDS_Status();
-    tef.Get_Quality_Status();
+    tef.UpdateRDSStatus();
+    tef.UpdateQualityStatus();
     sprintf(text, "Freq: %i.%i, MS: %i, TA: %i, PTY: %s, PS: %s,  RT: %s, Quality: %i", tef.Currentfreq / 100, tef.Currentfreq % 100, tef.ms, tef.ta, ptyLabels[tef.pty], tef.psText, tef.rtText, tef.quality);
 
     Serial.println(text);
