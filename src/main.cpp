@@ -17,10 +17,12 @@
 #define BUTTON_SEEK_UP 13
 #define BUTTON_SEEK_DOWN 12
 
-#define ROTARY_ENCODER_A_PIN 42
-#define ROTARY_ENCODER_B_PIN 2
-#define ROTARY_ENCODER_BUTTON_PIN 1
+#define ROTARY_ENCODER_A_PIN 13
+#define ROTARY_ENCODER_B_PIN 12
+#define ROTARY_ENCODER_BUTTON_PIN 14
 #define ROTARY_ENCODER_STEPS 4
+
+#define ENABLE_POWER_TEF6686_PIN 32
 
 AiEsp32RotaryEncoder rotaryEncoder = AiEsp32RotaryEncoder(ROTARY_ENCODER_A_PIN, ROTARY_ENCODER_B_PIN, ROTARY_ENCODER_BUTTON_PIN, -1, ROTARY_ENCODER_STEPS);
 TEF6686 tef;
@@ -99,6 +101,7 @@ void Seek(int step)
 
 void ScanAll(int step)
 {
+  tef.Tune_To(tef.MODULE_FM, FREQ_DISPLAY_MIN);
   Serial.println("Start scan...");
   do
   {
@@ -185,6 +188,8 @@ void setup()
 {
   pinMode(BUTTON_SEEK_DOWN, INPUT_PULLUP);
   pinMode(BUTTON_SEEK_UP, INPUT_PULLUP);
+  pinMode(ENABLE_POWER_TEF6686_PIN, OUTPUT);
+  digitalWrite(ENABLE_POWER_TEF6686_PIN, HIGH);
 
   Serial.begin(115200);
   tef.Init();
