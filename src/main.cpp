@@ -4,6 +4,7 @@
 #include <GxEPD2_3C.h>
 #include <Fonts/FreeSans12pt7b.h>
 #include <TEF6686.h>
+#include <AiEsp32RotaryEncoder.h>
 #include <map>
 
 #define BACK_COLOR GxEPD_WHITE
@@ -16,6 +17,12 @@
 #define BUTTON_SEEK_UP 13
 #define BUTTON_SEEK_DOWN 12
 
+#define ROTARY_ENCODER_A_PIN 42
+#define ROTARY_ENCODER_B_PIN 2
+#define ROTARY_ENCODER_BUTTON_PIN 1
+#define ROTARY_ENCODER_STEPS 4
+
+AiEsp32RotaryEncoder rotaryEncoder = AiEsp32RotaryEncoder(ROTARY_ENCODER_A_PIN, ROTARY_ENCODER_B_PIN, ROTARY_ENCODER_BUTTON_PIN, -1, ROTARY_ENCODER_STEPS);
 TEF6686 tef;
 uint8_t qualityOK;
 unsigned long _lastRDSTime;
@@ -27,6 +34,53 @@ uint16_t qualityThreshold = 400;
 std::map<uint16_t, uint16_t> qualityMap;
 
 GxEPD2_BW<GxEPD2_290_BS, GxEPD2_290_BS::HEIGHT> display(GxEPD2_290_BS(/*CS=5*/ 5, /*DC=*/19, /*RST=*/2, /*BUSY=*/15)); // DEPG0290BS 128x296, SSD1680
+
+void IRAM_ATTR readEncoderISR()
+{
+  rotaryEncoder.readEncoder_ISR();
+}
+
+unsigned long shortPressAfterMiliseconds = 50;
+unsigned long longPressAfterMiliseconds = 350;
+
+void on_button_short_click()
+{
+}
+
+void on_button_long_click()
+{
+}
+
+void handle_rotary_button()
+{
+  static unsigned long lastTimeButtonDown = 0;
+  static bool wasButtonDown = false;
+
+  bool isEncoderButtonDown = rotaryEncoder.isEncoderButtonDown();
+
+  if (isEncoderButtonDown)
+  {
+    if (!wasButtonDown)
+    {
+      lastTimeButtonDown = millis();
+    }
+    wasButtonDown = true;
+    return;
+  }
+
+  if (wasButtonDown)
+  {
+    if (millis() - lastTimeButtonDown >= longPressAfterMiliseconds)
+    {
+      on_button_long_click();
+    }
+    else if (millis() - lastTimeButtonDown >= shortPressAfterMiliseconds)
+    {
+      on_button_short_click();
+    }
+  }
+  wasButtonDown = false;
+}
 
 void Seek(int step)
 {
@@ -154,7 +208,7 @@ void loop()
     _lastRDSTime = currentTime;
     tef.UpdateRDSStatus();
     tef.UpdateQualityStatus();
-    Serial.printf(text, "Freq: %i.%i, MS: %i, TA: %i, PTY: %s, PS: %s,  RT: %s, Quality: %i", tef.Currentfreq / 100, tef.Currentfreq % 100, tef.ms, tef.ta, ptyLabels[tef.pty], tef.psText, tef.rtText, tef.quality); 
+    Serial.printf(text, "Freq: %i.%i, MS: %i, TA: %i, PTY: %s, PS: %s,  RT: %s, Quality: %i", tef.Currentfreq / 100, tef.Currentfreq % 100, tef.ms, tef.ta, ptyLabels[tef.pty], tef.psText, tef.rtText, tef.quality);
   }
   sprintf(displayText, "FM %i.%i Mhz  %s", tef.Currentfreq / 100, tef.Currentfreq % 100, tef.psText);
   sprintf(rtText, "%s", tef.rtText);
@@ -194,4 +248,20 @@ void loop()
     Seek(10);
     delay(300);
   }
+
+  int encoderChanged = rotaryEncoder.encoderChanged();
+  if (encoderChanged)
+  {
+    if (encoderChanged < 0)
+    {
+      Seek(-10);
+      delay(300);
+    }
+    if (encoderChanged > 0)
+    {
+      Seek(10);
+      delay(300);
+    }
+  }
+  handle_rotary_button();
 }
