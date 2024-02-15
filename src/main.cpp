@@ -30,7 +30,8 @@ char displayText[256];
 char text[256];
 char rtText[256];
 uint16_t qualityThreshold = 400;
-
+bool scanning;
+bool powerOff;
 std::map<uint16_t, uint16_t> qualityMap;
 
 GxEPD2_BW<GxEPD2_290_BS, GxEPD2_290_BS::HEIGHT> display(GxEPD2_290_BS(/*CS=5*/ 5, /*DC=*/19, /*RST=*/2, /*BUSY=*/15)); // DEPG0290BS 128x296, SSD1680
@@ -43,12 +44,22 @@ void IRAM_ATTR readEncoderISR()
 unsigned long shortPressAfterMiliseconds = 50;
 unsigned long longPressAfterMiliseconds = 350;
 
+void PowerOff()
+{
+  powerOff=true;
+  delay(1000);
+  digitalWrite(ENABLE_POWER_TEF6686_PIN,LOW);
+  esp_deep_sleep_start();
+}
+
 void on_button_short_click()
 {
 }
 
 void on_button_long_click()
 {
+  Serial.println("Go sleep...");
+  PowerOff();
 }
 
 void handle_rotary_button()
@@ -99,6 +110,7 @@ void Seek(int step)
 
 void ScanAll(int step)
 {
+  scanning=true;
   tef.Tune_To(tef.MODULE_FM, FREQ_DISPLAY_MIN);
   Serial.println("Start scan...");
   do
@@ -110,6 +122,7 @@ void ScanAll(int step)
     qualityMap[tef.Currentfreq] = tef.quality;
     Serial.printf("Freq: %i, Quality: %i \n", tef.Currentfreq, tef.quality);
   } while (tef.Currentfreq < FREQ_DISPLAY_MAX);
+  scanning = false;
 }
 
 int16_t freqToX(uint16_t freq)
@@ -136,11 +149,19 @@ static void UpdateScreen(void *parameter)
     display.firstPage();
     do
     {
+      if(powerOff)
+      {
+        display.clearScreen();
+        break;
+      }
       display.setTextSize(2);
       display.fillScreen(BACK_COLOR);
       display.setTextColor(TEXT_COLOR);
       display.setCursor(0, 5);
       display.print(displayText);
+      if(scanning)
+        display.print("SCANNING...");
+        
       display.setFont(NULL);
       display.setCursor(0, 30);
       display.setTextSize(0);
@@ -184,6 +205,7 @@ static void UpdateScreen(void *parameter)
 
 void setup()
 {
+  esp_sleep_enable_ext0_wakeup(GPIO_NUM_14, 0);
   pinMode(ROTARY_ENCODER_A_PIN, INPUT_PULLUP);
   pinMode(ROTARY_ENCODER_B_PIN, INPUT_PULLUP);
   pinMode(ENABLE_POWER_TEF6686_PIN, OUTPUT);
