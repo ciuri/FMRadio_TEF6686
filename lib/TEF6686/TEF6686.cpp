@@ -26,10 +26,10 @@ void TEF6686::DspWriteData(const uint8_t *data)
     }
 }
 
-void TEF6686::Init()
+void TEF6686::Init(int sda, int scl, uint32_t freq)
 {
     delay(40);
-    Wire.begin(21, 22, 100000);
+    Wire.begin(sda,scl,freq);
     uint16_t state[1];
     do
     {
@@ -40,8 +40,7 @@ void TEF6686::Init()
         else if (state[0] >= 2)
         {
             Appl_Set_OperationMode(1);
-        }
-        Serial.println(state[0]);
+        }        
     } while (state[0] < 2);
 }
 
@@ -142,10 +141,4 @@ void TEF6686::HandleGroup2(uint16_t *rdsData)
             rtText[2 * offset + 1] = (uint8_t)(rdsData[4]);
         }
     }
-}
-
-void TEF6686::Get_Identification()
-{
-    uint16_t result[3];
-    tefI2CComm.GetCommand(MODULE_APPL, 130, result, 3);
 }

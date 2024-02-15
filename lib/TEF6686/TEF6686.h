@@ -377,11 +377,10 @@ public:
     uint8_t MODULE_AM = 33;
     uint8_t MODULE_AUDIO = 48;
     uint8_t MODULE_APPL = 64;
-    void Init();
+    void Init(int sda, int scl, uint32_t freq);
     void Tune_To(uint8_t module, uint16_t freq);
     void Audio_Set_Mute(uint8_t mute);
     void Appl_Set_OperationMode(uint8_t mode);
-    void Get_Identification();
     void UpdateRDSStatus();
     void UpdateQualityStatus();
     uint16_t Currentfreq;

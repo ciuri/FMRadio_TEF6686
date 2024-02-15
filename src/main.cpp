@@ -14,11 +14,9 @@
 #define FREQ_DISPLAY_MIN 8000
 #define FREQ_DISPLAY_MAX 11000
 #define QUALITY_MAX_VALUE 1200
-#define BUTTON_SEEK_UP 13
-#define BUTTON_SEEK_DOWN 12
 
-#define ROTARY_ENCODER_A_PIN 13
-#define ROTARY_ENCODER_B_PIN 12
+#define ROTARY_ENCODER_A_PIN 27
+#define ROTARY_ENCODER_B_PIN 26
 #define ROTARY_ENCODER_BUTTON_PIN 14
 #define ROTARY_ENCODER_STEPS 4
 
@@ -186,14 +184,15 @@ static void UpdateScreen(void *parameter)
 
 void setup()
 {
-  pinMode(BUTTON_SEEK_DOWN, INPUT_PULLUP);
-  pinMode(BUTTON_SEEK_UP, INPUT_PULLUP);
+  pinMode(ROTARY_ENCODER_A_PIN, INPUT_PULLUP);
+  pinMode(ROTARY_ENCODER_B_PIN, INPUT_PULLUP);
   pinMode(ENABLE_POWER_TEF6686_PIN, OUTPUT);
   digitalWrite(ENABLE_POWER_TEF6686_PIN, HIGH);
-
+  rotaryEncoder.begin();
+  rotaryEncoder.setup(readEncoderISR);
   Serial.begin(115200);
-  tef.Init();
-  tef.Audio_Set_Mute(0);
+  tef.Init(21, 22, 100000);
+  tef.Audio_Set_Mute(1);
   display.init(115200, true, 50, false);
   display.setPartialWindow(0, 0, display.width(), display.height());
   display.setRotation(1);
@@ -202,6 +201,7 @@ void setup()
   ScanAll(10);
   tef.Tune_To(tef.MODULE_FM, FREQ_MIN);
   Seek(10);
+  tef.Audio_Set_Mute(0);
 }
 
 void loop()
@@ -243,27 +243,19 @@ void loop()
   }
   delay(10);
 
-  if (digitalRead(BUTTON_SEEK_DOWN) == 0)
-  {
-    Seek(-10);
-    delay(300);
-  }
-  if (digitalRead(BUTTON_SEEK_UP) == 0)
-  {
-    Seek(10);
-    delay(300);
-  }
-
   int encoderChanged = rotaryEncoder.encoderChanged();
   if (encoderChanged)
   {
     if (encoderChanged < 0)
     {
+      Serial.println("Encoder --");
       Seek(-10);
       delay(300);
     }
     if (encoderChanged > 0)
     {
+
+      Serial.println("Encoder ++");
       Seek(10);
       delay(300);
     }
