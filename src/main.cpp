@@ -1,5 +1,3 @@
-
-#include <Fonts/FreeSans12pt7b.h>
 #include <AiEsp32RotaryEncoder.h>
 #include <Graphics/Graphics.h>
 #include <RadioApp/RadioApp.h>
@@ -15,14 +13,9 @@ void IRAM_ATTR readEncoderISR()
   rotaryEncoder.readEncoder_ISR();
 }
 
-void ChangeMode()
-{
-  radioApp.ChangeMode();
-}
-
 void on_button_short_click()
 {
-  ChangeMode();
+  radioApp.ChangeMode();
 }
 
 void on_button_long_click()
