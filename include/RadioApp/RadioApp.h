@@ -5,6 +5,13 @@
 #include <TEF6686.h>
 #include <map>
 
+enum Mode
+{
+    SEEK,
+    MANUAL,
+    THRESHOLD
+};
+
 class RadioApp
 {
 private:
@@ -13,9 +20,11 @@ public:
     uint8_t qualityOK;
     std::map<uint16_t, uint16_t> qualityMap;
     uint16_t qualityThreshold = 400;
+    Mode currentMode;
     bool scanning;
     bool powerOff;
-
+    void TuneIncrement(int step);
+    void ChangeMode();
     void Start();
     void Seek(int step);
     void ScanAll(int step);
@@ -27,7 +36,18 @@ public:
     char rtText[256];
 };
 
-#include <RadioApp/RadioApp.h>
+void RadioApp::TuneIncrement(int step)
+{
+    tef.Tune_To(tef.MODULE_FM, tef.Currentfreq + step);
+}
+
+void RadioApp::ChangeMode()
+{
+    if(currentMode<2)
+        currentMode = (Mode) (currentMode + 1);
+    else
+        currentMode = SEEK;   
+}
 
 void RadioApp::Start()
 {

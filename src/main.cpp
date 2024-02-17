@@ -17,6 +17,7 @@ void IRAM_ATTR readEncoderISR()
 
 void ChangeMode()
 {
+  radioApp.ChangeMode();
 }
 
 void on_button_short_click()
@@ -90,14 +91,24 @@ void loop()
     if (encoderChanged < 0)
     {
       Serial.println("Encoder --");
-      radioApp.Seek(-10);
+      if (radioApp.currentMode == SEEK)
+        radioApp.Seek(-10);
+      else if (radioApp.currentMode == MANUAL)
+        radioApp.TuneIncrement(-10);
+      else if (radioApp.currentMode == THRESHOLD)
+        radioApp.qualityThreshold -= 10;
       delay(300);
     }
     if (encoderChanged > 0)
     {
 
       Serial.println("Encoder ++");
-      radioApp.Seek(10);
+      if (radioApp.currentMode == SEEK)
+        radioApp.Seek(10);
+      else if (radioApp.currentMode == MANUAL)
+        radioApp.TuneIncrement(10);
+      else if (radioApp.currentMode == THRESHOLD)
+        radioApp.qualityThreshold += 10;
       delay(300);
     }
   }
