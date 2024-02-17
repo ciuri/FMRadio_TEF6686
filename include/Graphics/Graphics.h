@@ -6,7 +6,7 @@
 #include <Arduino.h>
 #include <GxEPD2_BW.h>
 #include <GxEPD2_3C.h>
-#include <RadioApp/RadiioApp.h>
+#include <RadioApp/RadioApp.h>
 
 
 GxEPD2_BW<GxEPD2_290_BS, GxEPD2_290_BS::HEIGHT> display(GxEPD2_290_BS(/*CS=5*/ 5, /*DC=*/19, /*RST=*/2, /*BUSY=*/15)); // DEPG0290BS 128x296, SSD1680

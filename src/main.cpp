@@ -1,17 +1,14 @@
 
 #include <Fonts/FreeSans12pt7b.h>
 #include <AiEsp32RotaryEncoder.h>
-
 #include <Graphics/Graphics.h>
-#include <RadioApp/RadiioApp.h>
-
+#include <RadioApp/RadioApp.h>
 
 RadioApp radioApp;
 AiEsp32RotaryEncoder rotaryEncoder = AiEsp32RotaryEncoder(ROTARY_ENCODER_A_PIN, ROTARY_ENCODER_B_PIN, ROTARY_ENCODER_BUTTON_PIN, -1, ROTARY_ENCODER_STEPS);
 
 unsigned long shortPressAfterMiliseconds = 50;
 unsigned long longPressAfterMiliseconds = 350;
-
 
 void IRAM_ATTR readEncoderISR()
 {
@@ -20,12 +17,11 @@ void IRAM_ATTR readEncoderISR()
 
 void ChangeMode()
 {
-
 }
 
 void on_button_short_click()
 {
-  ChangeMode(); 
+  ChangeMode();
 }
 
 void on_button_long_click()
@@ -65,10 +61,9 @@ void handle_rotary_button()
   wasButtonDown = false;
 }
 
-
-
 void setup()
 {
+  Serial.begin(115200);
   esp_sleep_enable_ext0_wakeup(GPIO_NUM_14, 0);
   pinMode(ROTARY_ENCODER_A_PIN, INPUT_PULLUP);
   pinMode(ROTARY_ENCODER_B_PIN, INPUT_PULLUP);
@@ -76,36 +71,35 @@ void setup()
   digitalWrite(ENABLE_POWER_TEF6686_PIN, HIGH);
   rotaryEncoder.begin();
   rotaryEncoder.setup(readEncoderISR);
-  Serial.begin(115200);
   radioApp.Start();
   display.init(115200, true, 50, false);
   display.setPartialWindow(0, 0, display.width(), display.height());
   display.setRotation(1);
   display.clearScreen();
   xTaskCreate(UpdateScreen, "UpdateScreen", 20000, &radioApp, 5, NULL);
-  radioApp.ScanAll(10);  
- 
+  radioApp.ScanAll(10);
 }
 
 void loop()
 {
- radioApp.LoopHandle();
-  int encoderChanged = rotaryEncoder.encoderChanged();
-    if (encoderChanged)
-    {
-        if (encoderChanged < 0)
-        {
-            Serial.println("Encoder --");
-            radioApp.Seek(-10);
-            delay(300);
-        }
-        if (encoderChanged > 0)
-        {
+  radioApp.LoopHandle();
 
-            Serial.println("Encoder ++");
-            radioApp.Seek(10);
-            delay(300);
-        }
+  int encoderChanged = rotaryEncoder.encoderChanged();
+  if (encoderChanged)
+  {
+    if (encoderChanged < 0)
+    {
+      Serial.println("Encoder --");
+      radioApp.Seek(-10);
+      delay(300);
     }
-    handle_rotary_button();
+    if (encoderChanged > 0)
+    {
+
+      Serial.println("Encoder ++");
+      radioApp.Seek(10);
+      delay(300);
+    }
+  }
+  handle_rotary_button();
 }

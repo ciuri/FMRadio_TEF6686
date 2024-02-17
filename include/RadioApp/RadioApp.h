@@ -27,6 +27,8 @@ public:
     char rtText[256];
 };
 
+#include <RadioApp/RadioApp.h>
+
 void RadioApp::Start()
 {
     tef.Init(21, 22, 100000);
@@ -115,4 +117,5 @@ void RadioApp::LoopHandle()
     }
     delay(10);
 }
+
 #endif
