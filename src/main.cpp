@@ -52,8 +52,14 @@ void PowerOff()
   esp_deep_sleep_start();
 }
 
+void ChangeMode()
+{
+
+}
+
 void on_button_short_click()
 {
+  ChangeMode(); 
 }
 
 void on_button_long_click()
@@ -235,10 +241,10 @@ void loop()
     _lastRDSTime = currentTime;
     tef.UpdateRDSStatus();
     tef.UpdateQualityStatus();
-    Serial.printf(text, "Freq: %i.%i, MS: %i, TA: %i, PTY: %s, PS: %s,  RT: %s, Quality: %i", tef.Currentfreq / 100, tef.Currentfreq % 100, tef.ms, tef.ta, ptyLabels[tef.pty], tef.psText, tef.rtText, tef.quality);
+    Serial.printf(text, "Freq: %i.%i, MS: %i, TA: %i, PTY: %s, PS: %s,  RT: %s, Quality: %i", tef.Currentfreq / 100, tef.Currentfreq % 100, tef.rdsData.ms, tef.rdsData.ta, ptyLabels[tef.rdsData.pty], tef.rdsData.psText, tef.rdsData.rtText, tef.quality);
   }
-  sprintf(displayText, "FM %i.%i Mhz  %s", tef.Currentfreq / 100, tef.Currentfreq % 100, tef.psText);
-  sprintf(rtText, "%s", tef.rtText);
+  sprintf(displayText, "FM %i.%i Mhz  %s", tef.Currentfreq / 100, tef.Currentfreq % 100, tef.rdsData.psText);
+  sprintf(rtText, "%s", tef.rdsData.rtText);
   if (Serial.available())
   {
     int readed = Serial.read();

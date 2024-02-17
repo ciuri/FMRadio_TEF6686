@@ -291,12 +291,6 @@ static const uint8_t DSP_INIT[] PROGMEM = {
     0x09, 0x20, 0x3F, 0x01, 0x00, 0x03, 0x00, 0x78, 0x00, 0xA0,             // FM_Set_Stereo_Noise (1, 3, 120, 160)
     0x09, 0x20, 0x40, 0x01, 0x00, 0x03, 0x00, 0x64, 0x00, 0x96,             // FM_Set_Stereo_Mph (1, 3, 100, 150)
     0x09, 0x20, 0x4A, 0x01, 0x00, 0x03, 0x00, 0x50, 0x00, 0x8C,             // FM_Set_StHiBlend_Mph (1, 3, 80, 140)
-    // 0x09, 0x20, 0x51, 0x01, 0x00, 0x01, 0x00, 0x00, 0x00, 0x04,              // FM_Set_RDS (1, 1, 0, 4)
-    // 0x09, 0x40, 0x03, 0x01, 0x00, 0x00, 0x00, 0x20, 0x01, 0x01,              // RDS (257) on GPIO 0 // or Set_Cmd(64, 3, 1, 0, 32, 257)
-    // 0x09, 0x40, 0x03, 0x01, 0x00, 0x00, 0x00, 0x20, 0x01, 0x04,              // APPL_Set_GPIO (1, 0, 32, 260) General purpose @ GPIO 0 for FM or 260,261 ( Hex 0104, 0105 ) for RDDA, RDCL
-    // 0x09, 0x40, 0x03, 0x01, 0x00, 0x01, 0x00, 0x20, 0x01, 0x05,              // APPL_Set_GPIO (1, 1, 32, 261) DAVN @ GPIO 1 for FM or 260,261 ( hex 0104, 0105 ) for RDDA, RDCL
-    // 0x09, 0x40, 0x03, 0x01, 0x00, 0x02, 0x00, 0x20, 0x01, 0x04,              // APPL_Set_GPIO (1, 2, 32, 260) DAVN @ GPIO 2 for FM or 260,261 ( hex 0104, 0105 ) for RDDA, RDCL
-    // 0x09, 0x40, 0x03, 0x01, 0x00, 0x00, 0x00, 0x20, 0x01, 0x06,              // AGC (262) on GPIO 2 for FM RF Ext. AGC
     0x00};
 
 
@@ -354,24 +348,29 @@ const char* const ptyLabels[] = {
   "Documentary"
 };
 
+typedef struct RDSData 
+{
+    uint8_t psText[9] {0};
+    uint8_t rtText[128] {0};
+    bool ms;
+    uint8_t pty;
+    bool ta;
+} RDSData;
+
 class TEF6686
 {
 
 private:
    
     void DspWriteData(const uint8_t *data);
-    void HandleGroup0(uint16_t* rdsData);
-    void HandleGroup2(uint16_t* rdsData);
+    void HandleGroup0(uint16_t* rdsRawData);
+    void HandleGroup2(uint16_t* rdsRawData);
     TEF6686I2CComm tefI2CComm;
     
 
 public:
     uint16_t quality;
-    uint8_t psText[9] {0};
-    uint8_t rtText[128] {0};
-    bool ms;
-    uint8_t pty;
-    bool ta;
+    RDSData rdsData;   
     uint8_t DEVICE_ADDR = 0x64;
     uint8_t MODULE_FM = 32;
     uint8_t MODULE_AM = 33;
@@ -381,7 +380,7 @@ public:
     void Tune_To(uint8_t module, uint16_t freq);
     void Audio_Set_Mute(uint8_t mute);
     void Appl_Set_OperationMode(uint8_t mode);
-    void UpdateRDSStatus();
+    void UpdateRDSStatus(); //should be called at least every 87ms
     void UpdateQualityStatus();
     uint16_t Currentfreq;
 };

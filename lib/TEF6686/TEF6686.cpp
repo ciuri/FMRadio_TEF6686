@@ -49,8 +49,8 @@ void TEF6686::Tune_To(uint8_t module, uint16_t freq)
     uint16_t params[2] = {1, freq};
     tefI2CComm.SetCommand(module, 0x1, params, 2);
     Currentfreq = freq;
-    memset(rtText, 0, sizeof(rtText));
-    memset(psText, 0, sizeof(psText));
+    memset(rdsData.rtText, 0, sizeof(rdsData.rtText));
+    memset(rdsData.psText, 0, sizeof(rdsData.psText));
 }
 
 void TEF6686::Audio_Set_Mute(uint8_t mute)
@@ -77,68 +77,68 @@ void TEF6686::UpdateRDSStatus()
     uint16_t uRds_Data[6] = {0};
     tefI2CComm.GetCommand(MODULE_FM, 130, uRds_Data, 7);
 
-    if (bitRead(uRds_Data[0], 15) == 1)
+    if (((uRds_Data[0] >> 15) & 1) == 1)
     {
         HandleGroup0(uRds_Data);
         HandleGroup2(uRds_Data);
     }
 }
 
-void TEF6686::HandleGroup0(uint16_t *rdsData)
+void TEF6686::HandleGroup0(uint16_t *rdsRawData)
 {
-    uint8_t groupType = (uint8_t)((rdsData[2] >> 12) & 0xff);
+    uint8_t groupType = (uint8_t)((rdsRawData[2] >> 12) & 0xff);
 
     if (groupType != 0)
         return;
 
-    ms = (uint8_t)((rdsData[2] >> 3) & 1) == 1;
-    ta = (uint8_t)((rdsData[2] >> 4) & 1) == 1;
-    pty = (uint8_t)((rdsData[2] >> 5) & 0x1F);
+    rdsData.ms = (uint8_t)((rdsRawData[2] >> 3) & 1) == 1;
+    rdsData.ta = (uint8_t)((rdsRawData[2] >> 4) & 1) == 1;
+    rdsData.pty = (uint8_t)((rdsRawData[2] >> 5) & 0x1F);
 
-    uint8_t err2 = (uint8_t)((rdsData[5] >> 12) & 3);
-    uint8_t err4 = (uint8_t)((rdsData[5] >> 8) & 3);
+    uint8_t err2 = (uint8_t)((rdsRawData[5] >> 12) & 3);
+    uint8_t err4 = (uint8_t)((rdsRawData[5] >> 8) & 3);
 
     if (err2 == 0 && err4 == 0)
     {
-        uint8_t offset = rdsData[2] & (uint16_t)3;
-        psText[2 * offset] = (uint8_t)(rdsData[4] >> 8);
-        psText[2 * offset + 1] = (uint8_t)(rdsData[4]);
+        uint8_t offset = rdsRawData[2] & (uint16_t)3;
+        rdsData.psText[2 * offset] = (uint8_t)(rdsRawData[4] >> 8);
+        rdsData.psText[2 * offset + 1] = (uint8_t)(rdsRawData[4]);
     }
 }
 
-void TEF6686::HandleGroup2(uint16_t *rdsData)
+void TEF6686::HandleGroup2(uint16_t *rdsRawData)
 {
-    uint8_t groupType = (uint8_t)((rdsData[2] >> 12) & 0xff);
+    uint8_t groupType = (uint8_t)((rdsRawData[2] >> 12) & 0xff);
 
     if (groupType != 2)
         return;
 
-    bool versionA = bitRead(rdsData[0], 12) == 0;
-    uint8_t offset = rdsData[2] & (uint16_t)0xf;
+    bool versionA = ((rdsRawData[0] >> 12) & 1) == 0;
+    uint8_t offset = rdsRawData[2] & (uint16_t)0xf;
 
-    uint8_t err2 = (uint8_t)((rdsData[5] >> 12) & 3);
-    uint8_t err3 = (uint8_t)((rdsData[5] >> 10) & 3);
-    uint8_t err4 = (uint8_t)((rdsData[5] >> 8) & 3);
+    uint8_t err2 = (uint8_t)((rdsRawData[5] >> 12) & 3);
+    uint8_t err3 = (uint8_t)((rdsRawData[5] >> 10) & 3);
+    uint8_t err4 = (uint8_t)((rdsRawData[5] >> 8) & 3);
 
     if (versionA)
     {
         if (err3 < 2)
         {
-            rtText[4 * offset] = (uint8_t)(rdsData[3] >> 8);
-            rtText[4 * offset + 1] = (uint8_t)(rdsData[3]);
+            rdsData.rtText[4 * offset] = (uint8_t)(rdsRawData[3] >> 8);
+            rdsData.rtText[4 * offset + 1] = (uint8_t)(rdsRawData[3]);
         }
         if (err4 < 2)
         {
-            rtText[4 * offset + 2] = (uint8_t)(rdsData[4] >> 8);
-            rtText[4 * offset + 3] = (uint8_t)(rdsData[4]);
+            rdsData.rtText[4 * offset + 2] = (uint8_t)(rdsRawData[4] >> 8);
+            rdsData.rtText[4 * offset + 3] = (uint8_t)(rdsRawData[4]);
         }
     }
     else
     {
         if (err4 == 0)
         {
-            rtText[2 * offset] = (uint8_t)(rdsData[4] >> 8);
-            rtText[2 * offset + 1] = (uint8_t)(rdsData[4]);
+            rdsData.rtText[2 * offset] = (uint8_t)(rdsRawData[4] >> 8);
+            rdsData.rtText[2 * offset + 1] = (uint8_t)(rdsRawData[4]);
         }
     }
 }
