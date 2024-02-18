@@ -86,6 +86,20 @@ static void UpdateScreen(void *parameter)
       float qF = (float)app->qualityThreshold / (float)QUALITY_MAX_VALUE;
       int thresholdLineY = qF * 100 - vOffset;
       DrawHorizontalDottedLine(display.height() - thresholdLineY);
+      
+      
+      display.fillRect(0, display.height()-8,50,8,GxEPD_WHITE);
+      display.setCursor(0, display.height()-8);      
+      char modeText[32];
+      const char* modeName;
+      if(app->currentMode==SEEK)
+        modeName = "Seek";
+      else if(app->currentMode==MANUAL)
+        modeName = "Manual";
+      else if(app->currentMode==THRESHOLD)
+        modeName="Threshold";  
+      sprintf(modeText, "%s", modeName);
+      display.print(modeText);
 
     } while (display.nextPage());
   }
