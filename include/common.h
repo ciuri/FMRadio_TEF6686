@@ -1,3 +1,4 @@
+#define LEFT_OFFSET 10
 #define FREQ_MAX 10800
 #define FREQ_MIN 8800
 #define FREQ_DISPLAY_MIN 8000

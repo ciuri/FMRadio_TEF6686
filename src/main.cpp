@@ -68,7 +68,7 @@ void setup()
   radioApp.Start();
   display.init(115200, true, 50, false);
   display.setPartialWindow(0, 0, display.width(), display.height());
-  display.setRotation(1);
+  display.setRotation(3);
   display.clearScreen();
   xTaskCreate(UpdateScreen, "UpdateScreen", 20000, &radioApp, 5, NULL);
   radioApp.ScanAll(10);

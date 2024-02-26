@@ -1,7 +1,6 @@
 #ifndef GRAPHICS_H
 #define GRAPHICS_H
 #define ENABLE_GxEPD2_GFX 0
-
 #include <common.h>
 #include <Arduino.h>
 #include <GxEPD2_BW.h>
@@ -45,13 +44,13 @@ static void UpdateScreen(void *parameter)
       display.setTextSize(2);
       display.fillScreen(BACK_COLOR);
       display.setTextColor(TEXT_COLOR);
-      display.setCursor(0, 5);
+      display.setCursor(LEFT_OFFSET, 5);
       display.print(app->displayText);
       if(app->scanning)
         display.print("SCANNING...");
         
       display.setFont(NULL);
-      display.setCursor(0, 30);
+      display.setCursor(LEFT_OFFSET, 30);
       display.setTextSize(0);
       display.print(app->rtText);
 
@@ -88,8 +87,8 @@ static void UpdateScreen(void *parameter)
       DrawHorizontalDottedLine(display.height() - thresholdLineY);
       
       
-      display.fillRect(0, display.height()-8,50,8,GxEPD_WHITE);
-      display.setCursor(0, display.height()-8);      
+      display.fillRect(LEFT_OFFSET, display.height()-8,50,8,GxEPD_WHITE);
+      display.setCursor(LEFT_OFFSET, display.height()-8);      
       char modeText[32];
       const char* modeName;
       if(app->currentMode==SEEK)
