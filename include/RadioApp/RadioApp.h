@@ -9,7 +9,8 @@ enum Mode
 {
     SEEK,
     MANUAL,
-    THRESHOLD
+    THRESHOLD,
+    DATA
 };
 
 class RadioApp
@@ -30,12 +31,18 @@ public:
     void ScanAll(int step);
     void PowerOff();
     void LoopHandle();
+    std::string GetFreqString();
     unsigned long _lastRDSTime;
     char displayText[256];
     char text[256];
     char rtText[256];
+    unsigned long changemodeTime;
 };
 
+std::string RadioApp::GetFreqString()
+{
+    return std::to_string(tef.Currentfreq / 100) + "." + std::to_string(tef.Currentfreq % 100) + " MHz";
+}
 void RadioApp::TuneIncrement(int step)
 {
     tef.Tune_To(tef.MODULE_FM, tef.Currentfreq + step);
@@ -43,10 +50,11 @@ void RadioApp::TuneIncrement(int step)
 
 void RadioApp::ChangeMode()
 {
-    if(currentMode<2)
-        currentMode = (Mode) (currentMode + 1);
+    changemodeTime = millis();
+    if (currentMode < 3)
+        currentMode = (Mode)(currentMode + 1);
     else
-        currentMode = SEEK;   
+        currentMode = SEEK;
 }
 
 void RadioApp::Start()
@@ -89,8 +97,8 @@ void RadioApp::ScanAll(int step)
         tef.Tune_To(tef.MODULE_FM, tef.Currentfreq + step);
         delay(50);
         tef.UpdateQualityStatus();
-        qualityMap[tef.Currentfreq] = tef.quality;
-        Serial.printf("Freq: %i, Quality: %i \n", tef.Currentfreq, tef.quality);
+        qualityMap[tef.Currentfreq] = tef.quality.Level;
+        Serial.printf("Freq: %s, Quality: level=%s, noise=%s, wam=%s, offset=%s, bandwidth=%s, modulation=%s, AF=%i, timestamp=%s \n", GetFreqString().c_str(), tef.quality.GetLevelString().c_str(), tef.quality.GetNoiseString().c_str(), tef.quality.GetWamString().c_str(), tef.quality.GetOffsetString().c_str(), tef.quality.GetBandwidthString().c_str(), tef.quality.GetModulationString().c_str(), tef.quality.AF_UpdateFlag, tef.quality.GetQualityTimeStampString().c_str());
     } while (tef.Currentfreq < FREQ_DISPLAY_MAX);
     scanning = false;
     tef.Tune_To(tef.MODULE_FM, FREQ_MIN);
@@ -107,10 +115,12 @@ void RadioApp::LoopHandle()
         _lastRDSTime = currentTime;
         tef.UpdateRDSStatus();
         tef.UpdateQualityStatus();
-        Serial.printf(text, "Freq: %i.%i, MS: %i, TA: %i, PTY: %s, PS: %s,  RT: %s, Quality: %i", tef.Currentfreq / 100, tef.Currentfreq % 100, tef.rdsData.ms, tef.rdsData.ta, ptyLabels[tef.rdsData.pty], tef.rdsData.psText, tef.rdsData.rtText, tef.quality);
+        Serial.printf(text, "Freq: %s, MS: %i, TA: %i, PTY: %s, PS: %s,  RT: %s, Quality: %i", GetFreqString().c_str(), tef.rdsData.ms, tef.rdsData.ta, ptyLabels[tef.rdsData.pty], tef.rdsData.psText, tef.rdsData.rtText, tef.quality);
+        Serial.printf("Freq: %i, Quality: level=%s, noise=%s, wam=%s, offset=%s, bandwidth=%s, modulation=%s, AF=%i, timestamp=%s \n", tef.Currentfreq, tef.quality.GetLevelString().c_str(), tef.quality.GetNoiseString().c_str(), tef.quality.GetWamString().c_str(), tef.quality.GetOffsetString().c_str(), tef.quality.GetBandwidthString().c_str(), tef.quality.GetModulationString().c_str(), tef.quality.AF_UpdateFlag, tef.quality.GetQualityTimeStampString().c_str());
     }
     sprintf(displayText, "FM %i.%i Mhz  %s", tef.Currentfreq / 100, tef.Currentfreq % 100, tef.rdsData.psText);
     sprintf(rtText, "%s", tef.rdsData.rtText);
+
     if (Serial.available())
     {
         int readed = Serial.read();

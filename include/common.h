@@ -1,3 +1,5 @@
+#ifndef COMMON_H
+#define COMMON_H
 #define LEFT_OFFSET 10
 #define FREQ_MAX 10800
 #define FREQ_MIN 8800
@@ -11,3 +13,4 @@
 #define ROTARY_ENCODER_BUTTON_PIN 14
 #define ROTARY_ENCODER_STEPS 4
 #define ENABLE_POWER_TEF6686_PIN 32
+#endif
